@@ -1,0 +1,81 @@
+menu "Zenix AI Client"
+
+    menu "Wi-Fi (mac dinh; thuong cau hinh qua Wi-Fi Zin-Setup)"
+        config XZ_WIFI_SSID
+            string "Wi-Fi SSID"
+            default ""
+        config XZ_WIFI_PASSWORD
+            string "Wi-Fi password"
+            default ""
+    endmenu
+
+    menu "AI server"
+        config XZ_OTA_URL
+            string "OTA / activation URL"
+            default "https://dev.zenix.vn/xiaozhi/ota/"
+            help
+                Thiet bi POST thong tin len URL nay de nhan websocket url, token
+                va ma kich hoat. Server xiaozhi tu host (xiaozhi-esp32-server)
+                thuong la http://<ip>:8003/xiaozhi/ota/
+
+        config XZ_WS_URL
+            string "WebSocket URL (de trong = lay tu OTA)"
+            default ""
+            help
+                Neu dien, bo qua buoc OTA va ket noi thang toi URL nay,
+                vi du ws://192.168.1.10:8000/xiaozhi/v1/
+
+        config XZ_WS_TOKEN
+            string "WebSocket token (chi dung khi dien WS URL)"
+            default "test-token"
+
+        config XZ_BOARD_NAME
+            string "Board name (User-Agent)"
+            default "zenix-esp32p4-m3"
+    endmenu
+
+    menu "Board pins"
+        config XZ_I2C_SDA
+            int "I2C SDA GPIO"
+            default 7
+        config XZ_I2C_SCL
+            int "I2C SCL GPIO"
+            default 8
+        config XZ_ES8311_ADDR
+            hex "ES8311 I2C address (7-bit)"
+            default 0x18
+        config XZ_I2S_MCLK
+            int "I2S MCLK GPIO"
+            default 13
+        config XZ_I2S_BCLK
+            int "I2S BCLK GPIO"
+            default 12
+        config XZ_I2S_WS
+            int "I2S WS (LRCK) GPIO"
+            default 10
+        config XZ_I2S_DOUT
+            int "I2S DOUT (to codec DSDIN) GPIO"
+            default 9
+        config XZ_I2S_DIN
+            int "I2S DIN (from codec ASDOUT) GPIO"
+            default 11
+        config XZ_PA_GPIO
+            int "Speaker amplifier enable GPIO (-1 = none)"
+            default 53
+        config XZ_BUTTON_GPIO
+            int "Push-to-talk button GPIO (active low)"
+            default 35
+    endmenu
+
+    menu "Audio"
+        config XZ_VOLUME
+            int "Default speaker volume (0-100)"
+            range 0 100
+            default 70
+        config XZ_MIC_GAIN
+            int "Microphone gain (dB)"
+            range 0 42
+            default 30
+    endmenu
+
+endmenu

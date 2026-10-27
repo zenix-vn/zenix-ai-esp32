@@ -1,0 +1,14 @@
+name: zenix-server
+services:
+  app:
+    build: .
+    image: zenix-server:latest
+    container_name: zenix-server
+    restart: always
+    ports:
+      - "127.0.0.1:8020:8080"
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - ZENIX_PUBLIC_URL=${ZENIX_PUBLIC_URL:-https://dev.zenix.vn}
+    volumes:
+      - ./data:/data

@@ -1,0 +1,11 @@
+.DS_Store
+# ESP-IDF
+ESP32P4-M3/build/
+ESP32P4-M3/managed_components/
+ESP32P4-M3/sdkconfig
+ESP32P4-M3/sdkconfig.old
+# Python / server
+.venv/
+__pycache__/
+.pytest_cache/
+zenix-server/data/
