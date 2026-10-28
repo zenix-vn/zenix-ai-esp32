@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "audio.h"
+#include "battery.h"
 #include "board.h"
 #include "captive_dns.h"
 #include "esp_log.h"
@@ -22,6 +23,8 @@
 #include "xz_protocol.h"
 
 static const char *TAG = "app";
+
+#define BATTERY_PERIOD_MS 30000
 
 typedef enum { ST_IDLE, ST_CONNECTING, ST_LISTENING, ST_SPEAKING } app_state_t;
 static const char *const STATE_NAMES[] = {"idle", "connecting", "listening", "speaking"};
@@ -274,7 +277,8 @@ static void run_setup_portal(void)
     web_server_start();
     start_mdns(true);
     while (true) {
-        vTaskDelay(portMAX_DELAY);
+        vTaskDelay(pdMS_TO_TICKS(BATTERY_PERIOD_MS));
+        battery_update();
     }
 }
 
@@ -296,6 +300,7 @@ void app_main(void)
         ESP_LOGE(TAG, "Khong thay ES8311 o 0x%02x — xem ket qua quet I2C o tren va sua chan trong menuconfig",
                  CONFIG_XZ_ES8311_ADDR);
     }
+    battery_init();
     if (audio_init(bus) != ESP_OK) {
         ESP_LOGE(TAG, "Audio init failed, dung lai.");
         return;
@@ -340,7 +345,12 @@ void app_main(void)
     ESP_LOGI(TAG, "San sang! Giu nut BOOT (GPIO%d) de noi, nha ra de gui.", CONFIG_XZ_BUTTON_GPIO);
 
     bool was_pressed = false;
+    TickType_t last_battery = xTaskGetTickCount();
     while (true) {
+        if (xTaskGetTickCount() - last_battery >= pdMS_TO_TICKS(BATTERY_PERIOD_MS)) {
+            battery_update();
+            last_battery = xTaskGetTickCount();
+        }
         bool pressed = board_button_pressed();
         if (pressed != was_pressed) {
             vTaskDelay(pdMS_TO_TICKS(30));  // chong doi

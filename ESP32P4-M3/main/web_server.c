@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include "audio.h"
+#include "battery.h"
 #include "esp_app_desc.h"
 #include "esp_heap_caps.h"
 #include "esp_http_server.h"
@@ -98,6 +99,14 @@ static esp_err_t status_get(httpd_req_t *req)
     cJSON_AddNumberToObject(r, "free_psram", heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
     cJSON_AddNumberToObject(r, "volume", audio_get_volume());
     cJSON_AddStringToObject(r, "led_mode", status_led_mode_name(status_led_mode()));
+    battery_info_t bat;
+    battery_get(&bat);
+    if (bat.valid) {
+        cJSON *b = cJSON_AddObjectToObject(r, "battery");
+        cJSON_AddBoolToObject(b, "present", bat.present);
+        cJSON_AddNumberToObject(b, "mv", bat.battery_mv);
+        cJSON_AddNumberToObject(b, "percent", bat.percent);
+    }
     cJSON_AddStringToObject(r, "ota_url", g_settings.ota_url);
     cJSON_AddStringToObject(r, "ws_url", g_settings.ws_url);
     cJSON_AddStringToObject(r, "ws_token", g_settings.ws_token);
@@ -207,6 +216,18 @@ static esp_err_t led_post(httpd_req_t *req)
     return send_ok(req, true, test ? "Đèn sẽ nháy trắng trong 3 giây." : "Đã lưu.");
 }
 
+static void test_tone_task(void *arg)
+{
+    audio_play_test_tone();
+    vTaskDelete(NULL);
+}
+
+static esp_err_t speaker_test_post(httpd_req_t *req)
+{
+    xTaskCreate(test_tone_task, "tone", 4096, NULL, 5, NULL);
+    return send_ok(req, true, "Loa đang phát 3 nốt nhạc.");
+}
+
 static esp_err_t reboot_post(httpd_req_t *req)
 {
     send_ok(req, true, "Đang khởi động lại...");
@@ -249,6 +270,7 @@ void web_server_start(void)
         {.uri = "/api/wifi", .method = HTTP_POST, .handler = wifi_post},
         {.uri = "/api/config", .method = HTTP_POST, .handler = config_post},
         {.uri = "/api/reboot", .method = HTTP_POST, .handler = reboot_post},
+        {.uri = "/api/speaker-test", .method = HTTP_POST, .handler = speaker_test_post},
         {.uri = "/api/led", .method = HTTP_GET, .handler = led_get},
         {.uri = "/api/led", .method = HTTP_POST, .handler = led_post},
         {.uri = "/api/reset", .method = HTTP_POST, .handler = reset_post},

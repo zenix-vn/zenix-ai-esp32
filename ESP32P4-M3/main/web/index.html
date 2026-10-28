@@ -65,6 +65,10 @@ input[type=text], input[type=password], input[type=url] {
 .hint { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
 input[type=range] { width: 100%; }
 .hidden { display: none !important; }
+.meter { height: 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line);
+         overflow: hidden; margin-bottom: 6px; }
+.meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .4s; }
+.meter i.warn { background: var(--warn); } .meter i.err { background: var(--err); }
 select { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px;
          background: var(--bg); color: var(--text); font: inherit; }
 .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin-top: 14px; font-size: 13px; }
@@ -149,8 +153,16 @@ select { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-
       <div class="row"><span>RAM trống</span><span id="d-heap">–</span></div>
     </div>
     <div class="card">
+      <h2>Pin: <span id="bat-pct">–</span></h2>
+      <div class="meter"><i id="bat-bar"></i></div>
+      <div class="row"><span>Điện áp</span><span id="bat-mv">–</span></div>
+      <p class="hint">Ước lượng từ điện áp, sai số khoảng ±10%. Khi đang cắm USB, pin được sạc nên số đo cao hơn thực tế. Đo lại mỗi 30 giây.</p>
+    </div>
+    <div class="card">
       <h2>Âm lượng: <span id="vol-val">–</span></h2>
       <input type="range" id="vol" min="0" max="100" step="5">
+      <div class="actions"><button class="btn ghost" id="speaker-test">Thử loa</button></div>
+      <div class="msg" id="vol-msg"></div>
     </div>
     <div class="card">
       <h2>Đèn LED trạng thái</h2>
@@ -233,6 +245,12 @@ async function refresh() {
   $('d-fw').textContent = `${status.firmware} (IDF ${status.idf})`;
   $('d-up').textContent = fmtUptime(status.uptime_s);
   $('d-heap').textContent = `${Math.round(status.free_heap / 1024)} KB + PSRAM ${Math.round(status.free_psram / 1048576)} MB`;
+  const bat = status.battery;
+  const pct = bat && bat.present ? bat.percent : 0;
+  $('bat-pct').textContent = !bat ? '–' : bat.present ? pct + '%' : 'Không có pin';
+  $('bat-mv').textContent = bat && bat.present ? (bat.mv / 1000).toFixed(2) + ' V' : '–';
+  $('bat-bar').style.width = pct + '%';
+  $('bat-bar').className = pct <= 15 ? 'err' : pct <= 30 ? 'warn' : '';
   if (document.activeElement !== $('vol')) { $('vol').value = status.volume; $('vol-val').textContent = status.volume; }
   for (const [id, key] of [['ota', 'ota_url'], ['ws', 'ws_url'], ['token', 'ws_token']]) {
     if (document.activeElement !== $(id) && !$(id).dataset.dirty) $(id).value = status[key] || '';
@@ -314,6 +332,10 @@ $('server-form').onsubmit = async (e) => {
 
 $('vol').oninput = () => $('vol-val').textContent = $('vol').value;
 $('vol').onchange = () => api('/api/config', { volume: +$('vol').value }).catch(() => {});
+$('speaker-test').onclick = async () => {
+  try { const r = await api('/api/speaker-test', {}); show($('vol-msg'), r.ok ? 'ok' : 'err', r.message); }
+  catch { show($('vol-msg'), 'err', 'Không gửi được lệnh tới thiết bị.'); }
+};
 
 $('reboot').onclick = async () => {
   if (!confirm('Khởi động lại thiết bị?')) return;

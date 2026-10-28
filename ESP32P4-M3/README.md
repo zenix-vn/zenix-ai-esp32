@@ -11,7 +11,7 @@ Giữ nút BOOT để nói, nhả ra để gửi; AI trả lời qua loa.
 |---|---|
 | SoC | ESP32-P4 rev v3.2, 400 MHz, flash 16 MB (Boya), PSRAM 32 MB |
 | Wi-Fi | ESP32-C6 qua SDIO (ESP-Hosted), CLK18 CMD19 D0-D3 14-17, reset GPIO54 |
-| Codec | ES8311 @ I2C 0x18 (SDA 7, SCL 8); I2S MCLK13 BCLK12 WS10 DOUT9 DIN11; PA GPIO53 |
+| Codec | ES8311 @ I2C 0x18 (SDA 7, SCL 8); I2S MCLK13 BCLK12 WS10 DOUT9 DIN48; PA GPIO11; pin GPIO53 (ADC) |
 | Nút | BOOT = GPIO35 |
 | Console | UART0 GPIO37/38 qua CH340 (`/dev/cu.usbserial-*`) |
 

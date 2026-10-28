@@ -6,7 +6,9 @@
 #include "esp_log.h"
 #include "esp_opus_dec.h"
 #include "esp_opus_enc.h"
+#include <math.h>
 #include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 static const char *TAG = "audio";
 
@@ -20,6 +22,8 @@ static int s_enc_in_bytes;
 static int s_volume = CONFIG_XZ_VOLUME;
 static int16_t *s_pcm_in;
 static int16_t *s_pcm_out;
+// play_task va nut "Thu loa" tren web cung ghi ra loa.
+static SemaphoreHandle_t s_out_lock;
 
 static void create_i2s(i2s_chan_handle_t *tx, i2s_chan_handle_t *rx)
 {
@@ -121,6 +125,7 @@ esp_err_t audio_init(i2c_master_bus_handle_t bus)
 {
     s_pcm_in = heap_caps_malloc(AUDIO_FRAME_SAMPLES * sizeof(int16_t), MALLOC_CAP_DEFAULT);
     s_pcm_out = heap_caps_malloc(DECODE_MAX_SAMPLES * sizeof(int16_t), MALLOC_CAP_DEFAULT);
+    s_out_lock = xSemaphoreCreateMutex();
 
     i2s_chan_handle_t tx, rx;
     create_i2s(&tx, &rx);
@@ -160,8 +165,31 @@ void audio_play_opus(const uint8_t *data, size_t len)
         return;
     }
     if (frame.decoded_size > 0) {
+        xSemaphoreTake(s_out_lock, portMAX_DELAY);
         esp_codec_dev_write(s_dev, s_pcm_out, frame.decoded_size);
+        xSemaphoreGive(s_out_lock);
     }
+}
+
+void audio_play_test_tone(void)
+{
+    static const int NOTES_HZ[] = {523, 659, 784};  // do - mi - sol
+    const int note_samples = AUDIO_SAMPLE_RATE / 4;  // 250 ms
+    const int fade = AUDIO_SAMPLE_RATE / 100;        // 10 ms, tranh tieng lup bup
+    int16_t buf[480];
+
+    xSemaphoreTake(s_out_lock, portMAX_DELAY);
+    for (size_t n = 0; n < sizeof(NOTES_HZ) / sizeof(NOTES_HZ[0]); n++) {
+        for (int i = 0; i < note_samples; i += 480) {
+            for (int j = 0; j < 480; j++) {
+                int k = i + j;
+                float env = k < fade ? (float)k / fade : (k > note_samples - fade ? (float)(note_samples - k) / fade : 1.0f);
+                buf[j] = (int16_t)(10000.0f * env * sinf(2.0f * (float)M_PI * NOTES_HZ[n] * k / AUDIO_SAMPLE_RATE));
+            }
+            esp_codec_dev_write(s_dev, buf, sizeof(buf));
+        }
+    }
+    xSemaphoreGive(s_out_lock);
 }
 
 void audio_reset_decoder(void)

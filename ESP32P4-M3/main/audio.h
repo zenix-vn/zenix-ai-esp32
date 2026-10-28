@@ -17,6 +17,8 @@ int audio_record_opus(uint8_t *out, size_t out_cap);
 // Giai ma 1 goi Opus tu server va phat ra loa.
 void audio_play_opus(const uint8_t *data, size_t len);
 void audio_reset_decoder(void);
+// Phat 3 not ngan (do-mi-sol) de thu loa, khong can server.
+void audio_play_test_tone(void);
 
 void audio_set_volume(int volume);
 int audio_get_volume(void);

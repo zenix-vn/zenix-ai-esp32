@@ -31,7 +31,7 @@ Quy ước: ✅ = đã kiểm chứng trên mạch thật; 📄 = đọc từ s�
 - **USB5V_IN**: cấp từ cổng USB-C hoặc cổng 4 chân `CN2` (VIN). Có MOSFET AO3401 (Q2) chống ngược cực và TVS SMBJ6.0CA.
 - **VCC3V3**: buck **TLV62569** (5V → 3,3V), cấp cho P4, codec, PHY, thẻ nhớ.
 - **Pin 1S Li-ion**: IC **IP5306** (sạc + boost), đầu nối `CN4` (BAT+/BAT−), nút `SW3` (KEY) của IP5306. Rail **VOUT-BAT** cấp cho bộ khuếch đại loa NS4150 và mạch nền màn hình.
-- ❓ Trang 2 có nhánh `GPIO53 — R55 0Ω — R52 68k / R57 100k — BAT+`, tức là chia áp đo pin vào GPIO53. Nhưng GPIO53 cũng là `PA_CTRL` (bật loa) ở trang 1. Firmware hiện dùng GPIO53 điều khiển loa và chạy tốt; **đừng dùng GPIO53 để đọc pin** trước khi kiểm tra kỹ.
+- ✅ **Đo pin qua GPIO53** (ADC2 kênh 4): `BAT+ — R52 68k — GPIO53 (qua R55 0Ω) — R57 100k — GND`, hệ số 1,68. Đo thật (2026-10-28): GPIO53 = 2513 mV ↔ pin 4,22 V khi đang sạc. GPIO53 **chỉ** dùng để đo pin; chân bật loa là GPIO11. Firmware (`main/battery.c`) đo lúc khởi động và mỗi 30 giây. IP5306 không có I2C và LED báo pin không nối, nên **không biết được đang sạc hay đã đầy**; % chỉ ước lượng từ điện áp.
 - **D1** (đèn đỏ 0603, cạnh tụ C23): ✅ chỉ là **đèn báo nguồn**, mắc nối tiếp R21 5,1kΩ từ nguồn 5V xuống GND. Không nối vào GPIO nào, **phần mềm không điều khiển được**.
 
 ## 3. Âm thanh
@@ -51,9 +51,8 @@ ESP32-P4 ─► I2S ─► ES8311 (DAC OUTP/OUTN) ─► NS4150 (D, 3W) ─► l
 | I2S BCLK (SCLK) | **12** | ✅ |
 | I2S WS (LRCK) | **10** | ✅ |
 | I2S DOUT (P4 → DAC, chân `DSDIN` của codec) | **9** | ✅ |
-| I2S DIN (ADC → P4, chân `ASDOUT` của codec) | **11** | ✅ |
-| PA_CTRL (chân STD của NS4150) | **53** | ✅ mức cao = bật loa |
-| ES7210_SDOUT | **48** | ❓ có net `ES7210_SDOUT` nhưng mạch tôi kiểm tra **chỉ thấy ES8311**; chưa rõ có gắn ES7210 (ADC 4 mic) không |
+| I2S DIN (ADC → P4, chân `ASDOUT` của codec, net `ES7210_SDOUT`) | **48** | 📄 theo sơ đồ; chưa thử mic sau khi đổi |
+| PA_CTRL (chân STD của NS4150) | **11** | ✅ mức cao = bật loa (đo 2026-10-28: loa kêu với GPIO11, im lặng với GPIO53) |
 
 - **ES8311**: I2C `0x18` ✅. Chỉ **1 mic analog** (MIC1P/MIC1N); loa mono.
 - Mic và loa **cùng một codec** nên **không có tách tiếng vọng bằng phần cứng**; phải xử lý bằng phần mềm (AEC) nếu muốn ngắt lời khi robot đang nói (xem ROADMAP, pha 2).
@@ -162,7 +161,8 @@ Danh sách chân firmware cho phép gắn đèn LED ngoài (xem [README](../READ
 | 0 | (chưa ra header) | |
 | 1–5 | header JP1 | tự do |
 | 7, 8 | I2C (codec, cảm ứng, CN3) | ✅ |
-| 9–13 | I2S ↔ ES8311 | ✅ |
+| 9, 10, 12, 13 | I2S ↔ ES8311 | ✅ |
+| 11 | PA_CTRL (loa) | ✅ |
 | 14–19 | SDIO ↔ ESP32-C6 | ✅ |
 | 20 | header / TOUCH_INT | |
 | 21 | TOUCH_RST | |
@@ -178,8 +178,8 @@ Danh sách chân firmware cho phép gắn đèn LED ngoài (xem [README](../READ
 | 39–44 | thẻ TF (SDMMC) | |
 | 45 | nguồn thẻ TF (R10 NC) | |
 | 46, 47 | header | tự do |
-| 48 | ES7210_SDOUT | ❓ |
-| 53 | PA_CTRL (loa) | ✅ |
+| 48 | I2S DIN (mic) | 📄 |
+| 53 | Đo pin (ADC2 kênh 4) | ✅ |
 | 54 | Reset ESP32-C6 | ✅ |
 
 ## 11. Điểm cần lưu ý khi viết firmware
