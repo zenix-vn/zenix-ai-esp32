@@ -65,6 +65,17 @@ menu "Zenix AI Client"
         config XZ_BUTTON_GPIO
             int "Push-to-talk button GPIO (active low)"
             default 35
+        config XZ_TOUCH_GPIO
+            int "Touch sensor GPIO (-1 = none)"
+            default 1
+            help
+                Ngo ra so cua module cam bien cham (vd TTP223), dung nhu nut BOOT:
+                cham giu de noi, buong ra de gui. Mac dinh GPIO1 = chan 7 header JP1.
+        config XZ_TOUCH_ACTIVE_HIGH
+            bool "Touch sensor output is high when touched"
+            default y
+            help
+                TTP223 mac dinh ra muc cao khi cham. Bo chon neu module da han jumper dao muc.
         config XZ_BAT_ADC_GPIO
             int "Battery voltage ADC GPIO"
             default 53

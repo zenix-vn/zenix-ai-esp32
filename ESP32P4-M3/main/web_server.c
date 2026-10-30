@@ -182,7 +182,9 @@ static esp_err_t led_get(httpd_req_t *req)
     cJSON_AddStringToObject(r, "mode", status_led_mode_name(status_led_mode()));
     cJSON *gpios = cJSON_AddArrayToObject(r, "safe_gpios");
     for (const int *g = STATUS_LED_SAFE_GPIOS; *g >= 0; g++) {
-        cJSON_AddItemToArray(gpios, cJSON_CreateNumber(*g));
+        if (status_led_gpio_allowed(*g)) {
+            cJSON_AddItemToArray(gpios, cJSON_CreateNumber(*g));
+        }
     }
     return send_json(req, r);
 }

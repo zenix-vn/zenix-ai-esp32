@@ -9,3 +9,7 @@ ESP32P4-M3/sdkconfig.old
 __pycache__/
 .pytest_cache/
 zenix-server/data/
+
+# Firmware backups and upstream checkouts (local only)
+backups/
+xiaozhi-esp32/

@@ -138,19 +138,22 @@ Firmware hiện tại **không** dùng màn hình, camera.
 
 | Chân JP1 | Tín hiệu | Ghi chú |
 |---|---|---|
-| 1, 2 | 3V3, 5V | |
-| 3 | GPIO1 | |
-| 5 | GPIO2 | |
-| 9 | GPIO3 | |
-| 11 | GPIO4 | |
-| 13 | GPIO5 | |
-| 15 | GPIO20 | chung với `TOUCH_INT` |
-| 17 | GPIO32 | |
-| 19 | GPIO33 | |
+| 1, 3 | 3V3 | |
+| 2, 4 | 5V | |
+| 5, 6, 16 | GND | |
+| 7 | GPIO1 | |
+| 8 | (không nối) | |
+| 9 | GPIO2 | |
+| 11 | GPIO3 | |
+| 13 | GPIO4 | |
+| 15 | GPIO5 | |
+| 17 | GPIO20 | chung với `TOUCH_INT` |
+| 18 | 3V3 | nhãn sát ký hiệu GND trên schematic, đo lại trước khi dùng |
+| 19 | GPIO32 | |
+| 21 | GPIO33 | |
 | 10, 12, 14 | GPIO47, 46, 45 | GPIO45: điều khiển nguồn thẻ nhớ (R10 NC) |
-| 21, 23 | I2C SDA/SCL | = GPIO7/8, **bus chung với codec** |
+| 23, 25 | I2C SDA/SCL | = GPIO7/8, **bus chung với codec** |
 | 20, 22, 24, 26 | `C6_U0RXD`, `C6_U0TXD`, `C6_IO9`, `C6_CHIP_PU` | nạp/gỡ lỗi C6 |
-| còn lại | GND, 3V3, 5V | |
 
 Danh sách chân firmware cho phép gắn đèn LED ngoài (xem [README](../README.md)): **GPIO 1, 2, 3, 4, 5, 20, 32, 33, 46, 47**.
 

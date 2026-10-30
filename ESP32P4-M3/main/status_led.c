@@ -9,6 +9,7 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "led_strip.h"
+#include "sdkconfig.h"
 
 static const char *TAG = "led";
 
@@ -55,6 +56,9 @@ static volatile int64_t s_overlay_until;
 
 bool status_led_gpio_allowed(int gpio)
 {
+    if (gpio == CONFIG_XZ_TOUCH_GPIO) {
+        return false;  // chan nay la ngo vao cua cam bien cham
+    }
     for (const int *p = STATUS_LED_SAFE_GPIOS; *p >= 0; p++) {
         if (*p == gpio) {
             return true;

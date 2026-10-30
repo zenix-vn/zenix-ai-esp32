@@ -3,7 +3,7 @@
 > Tài liệu: [phần cứng chi tiết (sơ đồ, chân, nguồn)](docs/BOARD.md) · [kế hoạch phát triển firmware](docs/ROADMAP.md)
 
 Firmware mẫu nói chuyện với server AI theo giao thức **xiaozhi** (WebSocket + Opus + MCP).
-Giữ nút BOOT để nói, nhả ra để gửi; AI trả lời qua loa.
+Giữ nút BOOT (hoặc chạm giữ cảm biến touch) để nói, nhả ra để gửi; AI trả lời qua loa.
 
 ## Phần cứng đã xác minh
 
@@ -12,7 +12,7 @@ Giữ nút BOOT để nói, nhả ra để gửi; AI trả lời qua loa.
 | SoC | ESP32-P4 rev v3.2, 400 MHz, flash 16 MB (Boya), PSRAM 32 MB |
 | Wi-Fi | ESP32-C6 qua SDIO (ESP-Hosted), CLK18 CMD19 D0-D3 14-17, reset GPIO54 |
 | Codec | ES8311 @ I2C 0x18 (SDA 7, SCL 8); I2S MCLK13 BCLK12 WS10 DOUT9 DIN48; PA GPIO11; pin GPIO53 (ADC) |
-| Nút | BOOT = GPIO35 |
+| Nút | BOOT = GPIO35; cảm biến touch (TTP223) = GPIO1, chân 7 JP1 (`XZ_TOUCH_GPIO`) |
 | Console | UART0 GPIO37/38 qua CH340 (`/dev/cu.usbserial-*`) |
 
 ## Cài đặt môi trường
@@ -120,7 +120,7 @@ Thiết bị tự nhận ra khi đã kích hoạt và chuyển sang trạng thá
 | `main/mcp.c` | MCP server tối thiểu (JSON-RPC 2.0) — thêm tool mới tại `list_tools`/`call_tool` |
 | `main/audio.c` | I2S + ES8311 (esp_codec_dev), Opus encode/decode (esp_audio_codec) |
 | `main/net_wifi.c` | Wi-Fi STA qua ESP32-C6 (esp_wifi_remote + esp_hosted) |
-| `main/board.c` | Bus I2C (kèm quét chẩn đoán), nút BOOT |
+| `main/board.c` | Bus I2C (kèm quét chẩn đoán), nút BOOT, cảm biến touch |
 | `main/settings.c` | Cấu hình trong NVS (Wi-Fi, server, âm lượng) |
 | `main/web_server.c` | Trang quản lý + REST API (`/api/status`, `/api/scan`, `/api/wifi`, `/api/config`, `/api/reboot`, `/api/reset`) |
 | `main/web/index.html` | Giao diện trang quản lý (nhúng vào firmware) |

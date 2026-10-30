@@ -43,9 +43,33 @@ void board_button_init(void)
         .pull_up_en = GPIO_PULLUP_ENABLE,
     };
     ESP_ERROR_CHECK(gpio_config(&io));
+
+#if CONFIG_XZ_TOUCH_GPIO >= 0
+    // Keo ve muc "khong cham" de chan bo trong (chua cam module) khong bi bat nham.
+    gpio_config_t touch = {
+        .pin_bit_mask = 1ULL << CONFIG_XZ_TOUCH_GPIO,
+        .mode = GPIO_MODE_INPUT,
+#if CONFIG_XZ_TOUCH_ACTIVE_HIGH
+        .pull_down_en = GPIO_PULLDOWN_ENABLE,
+#else
+        .pull_up_en = GPIO_PULLUP_ENABLE,
+#endif
+    };
+    ESP_ERROR_CHECK(gpio_config(&touch));
+    ESP_LOGI(TAG, "Cam bien cham: GPIO%d", CONFIG_XZ_TOUCH_GPIO);
+#endif
 }
 
 bool board_button_pressed(void)
 {
     return gpio_get_level(CONFIG_XZ_BUTTON_GPIO) == 0;
+}
+
+bool board_touch_pressed(void)
+{
+#if CONFIG_XZ_TOUCH_GPIO >= 0
+    return gpio_get_level(CONFIG_XZ_TOUCH_GPIO) == (CONFIG_XZ_TOUCH_ACTIVE_HIGH ? 1 : 0);
+#else
+    return false;
+#endif
 }

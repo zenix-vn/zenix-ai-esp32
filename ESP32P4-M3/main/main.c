@@ -1,4 +1,4 @@
-// Zenix AI client cho ESP32-P4: giu nut BOOT de noi chuyen voi server AI theo giao thuc xiaozhi.
+// Zenix AI client cho ESP32-P4: giu nut BOOT (hoac cham cam bien) de noi chuyen voi server AI theo giao thuc xiaozhi.
 #include <stdio.h>
 #include <string.h>
 #include "audio.h"
@@ -343,6 +343,9 @@ void app_main(void)
 
     s_phase = NULL;
     ESP_LOGI(TAG, "San sang! Giu nut BOOT (GPIO%d) de noi, nha ra de gui.", CONFIG_XZ_BUTTON_GPIO);
+#if CONFIG_XZ_TOUCH_GPIO >= 0
+    ESP_LOGI(TAG, "Hoac cham giu cam bien (GPIO%d) de noi, buong ra de gui.", CONFIG_XZ_TOUCH_GPIO);
+#endif
 
     bool was_pressed = false;
     TickType_t last_battery = xTaskGetTickCount();
@@ -351,10 +354,10 @@ void app_main(void)
             battery_update();
             last_battery = xTaskGetTickCount();
         }
-        bool pressed = board_button_pressed();
+        bool pressed = board_button_pressed() || board_touch_pressed();
         if (pressed != was_pressed) {
             vTaskDelay(pdMS_TO_TICKS(30));  // chong doi
-            pressed = board_button_pressed();
+            pressed = board_button_pressed() || board_touch_pressed();
         }
         if (pressed && !was_pressed) {
             on_button_down();
