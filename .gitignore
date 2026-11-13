@@ -13,3 +13,9 @@ zenix-server/data/
 # Firmware backups and upstream checkouts (local only)
 backups/
 xiaozhi-esp32/
+
+# C3 desk clock (ESP-IDF)
+C3-Clock/build/
+C3-Clock/managed_components/
+C3-Clock/sdkconfig
+C3-Clock/sdkconfig.old
